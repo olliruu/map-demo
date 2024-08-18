@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Map Demo</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+            integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+            crossorigin=""/>
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    </head>
+    <body>
+        <div style='display: flex;justify-content: center;align-items: center;'>
+            <div>
+                <div>
+                    <h2>Kartta demo</h2>
+                    <br>
+                    <div>kolarit näkyvät kolmioina.</div>
+                    <div>Oppilatokset näkyvät pisteinä.</div>
+                    <div>väestöntiheys näkyy väreillä.</div>
+                </div>
+                <br>
+                <div style="display:flex;justify-content:center">
+                    <div id='map' style='height:60%;width:60%;position:absolute'></div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            
+           //luodaan kartta
+           var map = L.map('map').fitBounds([[69, 25], [60, 30]], 16);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+           //siiretään kartta lähemmäs käyttäjää
+           navigator.geolocation.getCurrentPosition(result=>{
+                let latitude = result.coords.latitude;
+                let longitude = result.coords.longitude;
+                
+                map.setView([latitude, longitude], 8);
+            });
+    
+            //haetaan datasetit geoserveriltä
+            let population = L.tileLayer.wms('https://geo.stat.fi/geoserver/vaestoalue/wms', {
+                layers:'vaestoalue:maakunta_vaki2023',
+                format:'image/png',
+                transparent:true
+            }).addTo(map);
+    
+            let carCrashes = L.tileLayer.wms('https://geo.stat.fi/geoserver/tieliikenne/wms', {
+                layers:'tieliikenne:tieliikenne_2022',
+                format:'image/png',
+                transparent:true
+            }).addTo(map);
+    
+            let schools = L.tileLayer.wms('https://geo.stat.fi/geoserver/oppilaitokset/wms', {
+                layers:'oppilaitokset:oppilaitokset',
+                format:'image/png',
+                transparent:true
+            }).addTo(map);
+    
+            
+            //lisätään mahdollisuus vaihdella layereitä
+            let overlays = {
+                'Väestö':population,
+                'Kolarit':carCrashes,
+                'Oppilaitokset':schools
+            };
+            L.control.layers(null,overlays).addTo(map);
+        </script>
+    </body>
+</html>
